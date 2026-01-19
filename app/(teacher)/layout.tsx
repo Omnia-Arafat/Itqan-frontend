@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import SessionTracker from "@/components/session-tracker"
 
 export default function TeacherLayout({
   children,
@@ -18,6 +19,7 @@ export default function TeacherLayout({
             {children}
         </div>
       </main>
+      <SessionTracker />
     </SidebarProvider>
   )
 }
