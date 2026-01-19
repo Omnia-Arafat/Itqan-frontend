@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Users, Settings, Calendar } from "lucide-react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Plus, Users, Settings, Calendar, BookOpen, Edit } from "lucide-react"
 import { fetchWithAuth } from "@/lib/api"
 import { toast } from "sonner"
 import { HalaqaCardSkeleton } from "@/components/ui/loading-skeleton"
@@ -62,49 +63,89 @@ export default function TeacherHalaqasPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {halaqas.map((halaqa) => (
-            <Card key={halaqa.id} className="flex flex-col">
-              <CardHeader className="flex-row items-start justify-between space-y-0 pb-3">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg line-clamp-1">{halaqa.title}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{halaqa.type}</p>
+            <Card 
+              key={halaqa.id} 
+              className="flex flex-col hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary-500"
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-primary-600" />
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg leading-tight line-clamp-1">
+                          {halaqa.title}
+                        </CardTitle>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant="default" 
+                        className={halaqa.type === "PRIVATE" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}
+                      >
+                        {halaqa.type}
+                      </Badge>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Users className="mr-1 h-3 w-3" />
+                        <span className="font-medium">{halaqa.enrollments?.length || 0}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Settings className="h-4 w-4" />
-                </Button>
               </CardHeader>
-              <CardContent className="flex-1 space-y-3">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Users className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <span>{halaqa.enrollments?.length || 0} Students</span>
-                </div>
-                {halaqa.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
+              <CardContent className="flex-1">
+                {halaqa.description ? (
+                  <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                     {halaqa.description}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    No description provided
                   </p>
                 )}
                 {halaqa.academy && (
-                  <p className="text-xs text-muted-foreground">
-                    {halaqa.academy.name}
+                  <p className="text-xs text-muted-foreground mt-3 pt-3 border-t">
+                    📚 {halaqa.academy.name}
                   </p>
                 )}
               </CardContent>
-              <CardFooter className="flex flex-col gap-2 pt-4">
-                <div className="flex w-full gap-2">
-                  <Button variant="outline" className="flex-1" size="sm" asChild>
+              <CardFooter className="flex flex-col gap-2 pt-4 border-t">
+                <div className="grid grid-cols-2 w-full gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                    asChild
+                  >
+                    <Link href={`/teacher/halaqas/${halaqa.id}`}>
+                      <Edit className="h-3 w-3 mr-1" />
+                      Manage
+                    </Link>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="hover:bg-green-50 hover:text-green-600 hover:border-green-300"
+                    asChild
+                  >
                     <Link href={`/teacher/halaqas/${halaqa.id}/students`}>
-                      <Users className="h-4 w-4 mr-1" />
+                      <Users className="h-3 w-3 mr-1" />
                       Students
                     </Link>
                   </Button>
-                  <Button variant="outline" className="flex-1" size="sm" asChild>
-                    <Link href={`/teacher/halaqas/${halaqa.id}/sessions`}>
-                      <Calendar className="h-4 w-4 mr-1" />
-                      Sessions
-                    </Link>
-                  </Button>
                 </div>
-                <Button className="w-full" size="sm" asChild>
-                  <Link href={`/teacher/halaqas/${halaqa.id}`}>Manage Halaqa</Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
+                  asChild
+                >
+                  <Link href={`/teacher/halaqas/${halaqa.id}/sessions`}>
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Sessions
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

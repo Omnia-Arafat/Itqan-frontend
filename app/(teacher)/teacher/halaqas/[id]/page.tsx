@@ -13,11 +13,12 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-export default function ManageHalaqaPage({ params }: { params: { id: string } }) {
+export default function ManageHalaqaPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [halaqa, setHalaqa] = useState<any>(null)
+  const [halaqaId, setHalaqaId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -25,12 +26,22 @@ export default function ManageHalaqaPage({ params }: { params: { id: string } })
   })
 
   useEffect(() => {
-    loadHalaqa()
-  }, [params.id])
+    params.then(p => {
+      setHalaqaId(p.id)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (halaqaId) {
+      loadHalaqa()
+    }
+  }, [halaqaId])
 
   const loadHalaqa = async () => {
+    if (!halaqaId) return
+    
     try {
-      const response = await fetchWithAuth(`/halaqas/${params.id}`)
+      const response = await fetchWithAuth(`/halaqas/${halaqaId}`)
       if (response.ok) {
         const data = await response.json()
         setHalaqa(data)
@@ -51,9 +62,11 @@ export default function ManageHalaqaPage({ params }: { params: { id: string } })
   }
 
   const handleSave = async () => {
+    if (!halaqaId) return
+    
     setSaving(true)
     try {
-      const response = await fetchWithAuth(`/halaqas/${params.id}`, {
+      const response = await fetchWithAuth(`/halaqas/${halaqaId}`, {
         method: "PATCH",
         body: JSON.stringify(formData),
       })
@@ -73,12 +86,14 @@ export default function ManageHalaqaPage({ params }: { params: { id: string } })
   }
 
   const handleDelete = async () => {
+    if (!halaqaId) return
+    
     if (!confirm("Are you sure you want to delete this halaqa? This action cannot be undone.")) {
       return
     }
 
     try {
-      const response = await fetchWithAuth(`/halaqas/${params.id}`, {
+      const response = await fetchWithAuth(`/halaqas/${halaqaId}`, {
         method: "DELETE",
       })
 
@@ -217,13 +232,13 @@ export default function ManageHalaqaPage({ params }: { params: { id: string } })
             </CardHeader>
             <CardContent className="space-y-2">
               <Button className="w-full" variant="outline" asChild>
-                <Link href={`/teacher/halaqas/${params.id}/students`}>
+                <Link href={halaqaId ? `/teacher/halaqas/${halaqaId}/students` : "#"}>
                   <Users className="h-4 w-4 mr-2" />
                   View Students
                 </Link>
               </Button>
               <Button className="w-full" variant="outline" asChild>
-                <Link href={`/teacher/halaqas/${params.id}/sessions`}>
+                <Link href={halaqaId ? `/teacher/halaqas/${halaqaId}/sessions` : "#"}>
                   <Calendar className="h-4 w-4 mr-2" />
                   Manage Sessions
                 </Link>
