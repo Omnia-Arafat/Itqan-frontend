@@ -55,8 +55,8 @@ export default function StartImmediateSessionDialog({ halaqas, onSuccess }: Star
         setSelectedHalaqaId("")
         onSuccess?.()
         
-        // Navigate to session management page
-        window.location.href = `/teacher/halaqas/${selectedHalaqaId}/sessions`
+        // Navigate to live session page
+        window.location.href = `/teacher/session/${session.id}`
       } else {
         const error = await response.json()
         toast.error(error.message || "Failed to start session")

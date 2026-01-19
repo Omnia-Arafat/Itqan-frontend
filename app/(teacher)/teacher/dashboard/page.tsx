@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { fetchWithAuth } from "@/lib/api"
 import { toast } from "sonner"
+import StartImmediateSessionDialog from "@/components/start-immediate-session-dialog"
 
 export default function TeacherDashboard() {
   const [sessions, setSessions] = useState<any[]>([])
@@ -67,11 +68,37 @@ export default function TeacherDashboard() {
     return <div className="text-center py-12">Loading dashboard...</div>
   }
 
+  const refreshData = async () => {
+    setLoading(true)
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}")
+      
+      const [sessionsRes, halaqasRes, requestsRes] = await Promise.all([
+        fetchWithAuth("/sessions"),
+        fetchWithAuth(`/halaqas?teacherId=${user.id}`),
+        fetchWithAuth(`/join-requests?role=TEACHER&userId=${user.id}`)
+      ])
+      
+      if (sessionsRes.ok) setSessions(await sessionsRes.json())
+      if (halaqasRes.ok) setHalaqas(await halaqasRes.json())
+      if (requestsRes.ok) setRequests(await requestsRes.json())
+    } catch (error) {
+      console.error("Failed to refresh data", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">Welcome back! Here's your overview</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <p className="text-muted-foreground">Welcome back! Here's your overview</p>
+        </div>
+        {halaqas.length > 0 && (
+          <StartImmediateSessionDialog halaqas={halaqas} onSuccess={refreshData} />
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
