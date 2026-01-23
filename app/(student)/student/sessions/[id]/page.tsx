@@ -81,7 +81,7 @@ export default function SessionDetailsPage({ params }: { params: { id: string } 
         </div>
       </div>
     </div>
-    <FloatingMushaf />
+    <FloatingMushaf isOpen={false} onClose={() => {}} />
     </>
   )
 }
