@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Save, Trash2, Users, Calendar } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, Save, Trash2, Users, Calendar, Video } from "lucide-react"
 import { fetchWithAuth } from "@/lib/api"
 import { toast } from "sonner"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import StartLiveSessionButton from "@/components/start-live-session-button"
 
 export default function ManageHalaqaPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -19,6 +21,7 @@ export default function ManageHalaqaPage({ params }: { params: Promise<{ id: str
   const [saving, setSaving] = useState(false)
   const [halaqa, setHalaqa] = useState<any>(null)
   const [halaqaId, setHalaqaId] = useState<string | null>(null)
+  const [liveSession, setLiveSession] = useState<any>(null)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -50,6 +53,10 @@ export default function ManageHalaqaPage({ params }: { params: Promise<{ id: str
           description: data.description || "",
           type: data.type || "GENERAL",
         })
+        
+        // Find live session
+        const live = data.sessions?.find((s: any) => s.status === "LIVE")
+        setLiveSession(live || null)
       } else {
         toast.error("Failed to load halaqa")
       }
@@ -210,6 +217,52 @@ export default function ManageHalaqaPage({ params }: { params: Promise<{ id: str
         </Card>
 
         <div className="space-y-6">
+          {/* Live Session Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                Live Session
+                {liveSession && (
+                  <Badge className="bg-red-600 text-white animate-pulse">LIVE</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {liveSession ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Session is currently live. Students can join now.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" asChild>
+                      <Link href={`/teacher/session/${liveSession.id}`}>
+                        Join Session
+                      </Link>
+                    </Button>
+                    <StartLiveSessionButton
+                      halaqaId={halaqaId!}
+                      isLive={true}
+                      liveSessionId={liveSession.id}
+                      onSessionUpdate={loadHalaqa}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Start a live session for your students to join.
+                  </p>
+                  <StartLiveSessionButton
+                    halaqaId={halaqaId!}
+                    isLive={false}
+                    onSessionUpdate={loadHalaqa}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Statistics</CardTitle>
