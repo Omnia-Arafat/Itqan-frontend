@@ -8,11 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Building, Users, BookOpen, Search } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -423,5 +423,21 @@ export default function RegisterPage() {
         )}
       </Card>
     </div>
+  )
+}
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 p-4">
+        <Card className="w-full max-w-2xl">
+          <CardContent className="py-12 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading registration form...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   )
 }

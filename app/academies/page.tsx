@@ -1,26 +1,45 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Building, Users, BookOpen, Search, ArrowLeft, Plus } from "lucide-react"
 import Link from "next/link"
+import { useState, useEffect } from "react"
 
-async function getPublicAcademies() {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/academies/public`, {
-      cache: 'no-store'
-    })
-    if (response.ok) {
-      return await response.json()
+export default function AcademiesDirectoryPage() {
+  const [academies, setAcademies] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const getPublicAcademies = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/academies/public`)
+        if (response.ok) {
+          const data = await response.json()
+          setAcademies(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch academies:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  } catch (error) {
-    console.error('Failed to fetch academies:', error)
-  }
-  return []
-}
 
-export default async function AcademiesDirectoryPage() {
-  const academies = await getPublicAcademies()
+    getPublicAcademies()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading academies...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">

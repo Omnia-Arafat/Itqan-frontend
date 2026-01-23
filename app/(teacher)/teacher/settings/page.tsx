@@ -206,7 +206,7 @@ export default function SettingsPage() {
                 id="confirmPassword"
                 type="password"
                 value={passwordData.confirmPassword}
-                onChange={(e) => setProfileData({ ...passwordData, confirmPassword: e.target.value })}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                 placeholder="Confirm new password"
                 required
               />

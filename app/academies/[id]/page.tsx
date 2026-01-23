@@ -1,30 +1,115 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Building, Users, BookOpen, Mail, Phone, Globe, ArrowLeft, Calendar, Video } from "lucide-react"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useState, useEffect } from "react"
 
-async function getAcademy(id: string) {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/academies/${id}?details=true`, {
-      cache: 'no-store'
-    })
-    if (response.ok) {
-      return await response.json()
+export default function AcademyProfilePage() {
+  const params = useParams()
+  const [academy, setAcademy] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const getAcademy = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/academies/${params.id}?details=true`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.error) {
+            setError(true)
+          } else {
+            setAcademy(data)
+          }
+        } else {
+          setError(true)
+        }
+      } catch (error) {
+        console.error('Failed to fetch academy:', error)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
     }
-  } catch (error) {
-    console.error('Failed to fetch academy:', error)
+
+    if (params.id) {
+      getAcademy()
+    }
+  }, [params.id])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="bg-white border-b">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex items-center gap-4 mb-6">
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="/academies">
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
+              </Button>
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 rounded-full bg-slate-200 animate-pulse"></div>
+                <div>
+                  <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-2"></div>
+                  <div className="h-4 w-32 bg-slate-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="h-10 w-32 bg-slate-200 rounded animate-pulse"></div>
+              <div className="h-10 w-40 bg-slate-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground text-lg">Loading academy details...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
-  return null
-}
 
-export default async function AcademyProfilePage({ params }: { params: { id: string } }) {
-  const academy = await getAcademy(params.id)
-
-  if (!academy) {
-    notFound()
+  if (error || !academy) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="bg-white border-b">
+          <div className="container mx-auto px-4 py-6">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/academies">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center max-w-md mx-auto">
+            <div className="h-24 w-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
+              <Building className="h-12 w-12 text-red-600" />
+            </div>
+            <h1 className="text-3xl font-bold mb-4 text-slate-900">Academy Not Found</h1>
+            <p className="text-muted-foreground mb-8 leading-relaxed">
+              The academy you're looking for doesn't exist or couldn't be loaded. It may have been removed or the link might be incorrect.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600" asChild>
+                <Link href="/academies">Browse All Academies</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/">Return Home</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const students = academy.userRoles?.filter((role: any) => role.role === 'STUDENT') || []
@@ -65,14 +150,14 @@ export default async function AcademyProfilePage({ params }: { params: { id: str
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <Button asChild>
-              <Link href={`/register?academy=${academy.id}`}>Join Academy</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={`/register?academy=${academy.id}&role=teacher`}>Join as Teacher</Link>
-            </Button>
-          </div>
+            <div className="flex gap-4">
+              <Button className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600" asChild>
+                <Link href={`/register?academy=${academy.id}`}>Join Academy</Link>
+              </Button>
+              <Button variant="outline" className="border-green-200 text-green-700 hover:bg-green-50" asChild>
+                <Link href={`/register?academy=${academy.id}&role=teacher`}>Join as Teacher</Link>
+              </Button>
+            </div>
         </div>
       </div>
 
@@ -102,24 +187,30 @@ export default async function AcademyProfilePage({ params }: { params: { id: str
 
                 {/* Statistics */}
                 <div className="grid md:grid-cols-3 gap-4">
-                  <Card>
+                  <Card className="border-green-100 hover:shadow-lg transition-shadow">
                     <CardContent className="py-6 text-center">
-                      <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-                      <p className="text-2xl font-bold">{students.length}</p>
+                      <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                        <Users className="h-6 w-6 text-green-600" />
+                      </div>
+                      <p className="text-2xl font-bold text-green-600">{students.length}</p>
                       <p className="text-sm text-muted-foreground">Students</p>
                     </CardContent>
                   </Card>
-                  <Card>
+                  <Card className="border-blue-100 hover:shadow-lg transition-shadow">
                     <CardContent className="py-6 text-center">
-                      <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-                      <p className="text-2xl font-bold">{teachers.length}</p>
+                      <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+                        <Users className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <p className="text-2xl font-bold text-blue-600">{teachers.length}</p>
                       <p className="text-sm text-muted-foreground">Teachers</p>
                     </CardContent>
                   </Card>
-                  <Card>
+                  <Card className="border-purple-100 hover:shadow-lg transition-shadow">
                     <CardContent className="py-6 text-center">
-                      <BookOpen className="h-8 w-8 text-primary mx-auto mb-2" />
-                      <p className="text-2xl font-bold">{academy.halaqas?.length || 0}</p>
+                      <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
+                        <BookOpen className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <p className="text-2xl font-bold text-purple-600">{academy.halaqas?.length || 0}</p>
                       <p className="text-sm text-muted-foreground">Halaqas</p>
                     </CardContent>
                   </Card>
@@ -160,12 +251,12 @@ export default async function AcademyProfilePage({ params }: { params: { id: str
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" asChild>
+                              <Button size="sm" className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600" asChild>
                                 <Link href={`/register?academy=${academy.id}&halaqa=${halaqa.id}`}>
                                   Join Halaqa
                                 </Link>
                               </Button>
-                              <Button size="sm" variant="outline" asChild>
+                              <Button size="sm" variant="outline" className="border-green-200 text-green-700 hover:bg-green-50" asChild>
                                 <Link href={`/halaqas/${halaqa.id}`}>View Details</Link>
                               </Button>
                             </div>
@@ -282,12 +373,12 @@ export default async function AcademyProfilePage({ params }: { params: { id: str
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full" asChild>
+                <Button className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600" asChild>
                   <Link href={`/register?academy=${academy.id}`}>
                     Join as Student
                   </Link>
                 </Button>
-                <Button className="w-full" variant="outline" asChild>
+                <Button className="w-full border-green-200 text-green-700 hover:bg-green-50" variant="outline" asChild>
                   <Link href={`/register?academy=${academy.id}&role=teacher`}>
                     Apply as Teacher
                   </Link>

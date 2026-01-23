@@ -1,25 +1,45 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, Video, Users, Calendar, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { useState, useEffect } from "react"
 
-async function getPublicHalaqas() {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/halaqas/public`, {
-      cache: 'no-store'
-    })
-    if (response.ok) {
-      return await response.json()
+export default function PublicHalaqasPage() {
+  const [publicHalaqas, setPublicHalaqas] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const getPublicHalaqas = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/halaqas/public`)
+        if (response.ok) {
+          const data = await response.json()
+          setPublicHalaqas(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch public halaqas:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  } catch (error) {
-    console.error('Failed to fetch public halaqas:', error)
-  }
-  return []
-}
 
-export default async function PublicHalaqasPage() {
-  const publicHalaqas = await getPublicHalaqas()
+    getPublicHalaqas()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading halaqas...</p>
+        </div>
+      </div>
+    )
+  }
+
   const liveHalaqas = publicHalaqas.filter((h: any) => h.sessions?.some((s: any) => s.status === 'LIVE'))
   const regularHalaqas = publicHalaqas.filter((h: any) => !h.sessions?.some((s: any) => s.status === 'LIVE'))
 
